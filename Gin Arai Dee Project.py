@@ -1,4 +1,3 @@
-from os import name
 import sqlite3
 import random
 from rich import box
@@ -235,12 +234,6 @@ def main():
             for i, j in var2.items():
                 four_table.add_row(i ,str(j))
             console.print(Panel.fit(four_table, title="[b red]" + intro_message, border_style="bright_blue",))
-
-            #var = dict(all_item)
-            #var2 = dict(sorted(var.items(), key=lambda x: x[1]))
-            #for i, j in var2.items():
-            #    print(i, j)
-            #print("")
         
         c.execute("SELECT * FROM food_all")
         all_item = c.fetchall()
@@ -288,8 +281,11 @@ def main():
         console.print(Panel(Align.center("[white]!!WARNING!!", style="white on red")))
         console.print(Panel.fit("⚠️  YOU ARE ABOUT TO RESET EVERYTHING, ALL DATA WILL BE DELETED ⚠️ " + "\n" + "[white]DO YOU WANT TO CONTINUE? (y/n/yes/no)[/white]", style="red"))
         confirmation = input("👉 ")
+        print(confirmation.upper()
+        )
         if confirmation.upper() in ["YES", "Y", "NO", "N"]:
-            if confirmation.upper() == "YES" or "Y":
+            if confirmation.upper() == "YES" or confirmation.upper() == "Y":
+                print(confirmation.upper())
                 c.execute("DELETE FROM food_all")
                 c.execute("DELETE FROM dessert")
                 c.execute("DELETE FROM spicy")
@@ -299,7 +295,7 @@ def main():
                 c.execute("DELETE FROM favorite")
                 c.execute("DELETE FROM thai")
                 c.execute("DELETE FROM western")
-            elif confirmation.upper() == "NO" or "N":
+            elif confirmation.upper() == "NO" or confirmation.upper() == "N":
                 print("RESET HAS BEEN CANCELED ")
         conn.commit()
         conn.close()
