@@ -99,55 +99,123 @@ def main():
         console.rule("[bold]Random Menu")
         console.print(table2)
         final_pick = []
+        final_pick_unwanted = []
         console.print(Panel.fit("Please pick the catagory, you may enter more than 1. For example: [yellow]spicy thai soup[/yellow] or [yellow]6 1 4 [/yellow][cyan](press Enter to skip)[/cyan]"))
         wanted_cat = input("👉 ").split(" ")
         console.print(Panel.fit("Please enter calory limit [cyan](press Enter to skip)[/cyan]"))
         calor_limit = input("👉 ")
+        want_pick = 0
+        unwant_pick = 0
         def send_to_final(items):
             if len(items) > 0:
                 for i in items:
                     final_pick.append(i)
+        def send_to_final_unwanted(items):
+            if len(items) > 0:
+                for i in items:
+                    final_pick_unwanted.append(i)
+
         if wanted_cat[0] == "":
             c.execute("SELECT * FROM food_all")
             send_to_final(c.fetchall())
+            want_pick = want_pick + 1
+            final_pick_unwanted = []
         else:
             for j in range(len(wanted_cat)):
                 if "spicy" == wanted_cat[j] or "6" == wanted_cat[j]:
+                    want_pick = want_pick + 1
                     c.execute("SELECT * FROM spicy")
                     send_to_final(c.fetchall())
                 elif "dessert" == wanted_cat[j] or "8" == wanted_cat[j]:
+                    want_pick = want_pick + 1
                     c.execute("SELECT * FROM dessert")
                     send_to_final(c.fetchall())
                 elif "thai" == wanted_cat[j] or "1" == wanted_cat[j]:
+                    want_pick = want_pick + 1
                     c.execute("SELECT * FROM thai")
                     send_to_final(c.fetchall())
                 elif "chinese" == wanted_cat[j] or"3" == wanted_cat[j]:
+                    want_pick = want_pick + 1
                     c.execute("SELECT * FROM chinese")
                     send_to_final(c.fetchall())
                 elif "soup" == wanted_cat[j] or "4" == wanted_cat[j]:
+                    want_pick = want_pick + 1
                     c.execute("SELECT * FROM soup")
                     send_to_final(c.fetchall())
                 elif "favorite" == wanted_cat[j] or "7" == wanted_cat[j]:
+                    want_pick = want_pick + 1
                     c.execute("SELECT * FROM favorite")
                     send_to_final(c.fetchall())
                 elif "western" == wanted_cat[j] or "5" == wanted_cat[j]:
+                    want_pick = want_pick + 1
                     c.execute("SELECT * FROM western")
                     send_to_final(c.fetchall())
                 elif "japanese" == wanted_cat[j] or "2" == wanted_cat[j]:
+                    want_pick = want_pick + 1
                     c.execute("SELECT * FROM japanese")
                     send_to_final(c.fetchall())
+
+                elif "-spicy" == wanted_cat[j] or "-6" == wanted_cat[j]:
+                    unwant_pick = unwant_pick + 1
+                    c.execute("SELECT * FROM spicy")
+                    send_to_final_unwanted(c.fetchall())
+                elif "-dessert" == wanted_cat[j] or "-8" == wanted_cat[j]:
+                    unwant_pick = unwant_pick + 1
+                    c.execute("SELECT * FROM dessert")
+                    send_to_final_unwanted(c.fetchall())
+                elif "-thai" == wanted_cat[j] or "-1" == wanted_cat[j]:
+                    unwant_pick = unwant_pick + 1
+                    c.execute("SELECT * FROM thai")
+                    send_to_final_unwanted(c.fetchall())
+                elif "-chinese" == wanted_cat[j] or"-3" == wanted_cat[j]:
+                    unwant_pick = unwant_pick + 1
+                    c.execute("SELECT * FROM chinese")
+                    send_to_final_unwanted(c.fetchall())
+                elif "-soup" == wanted_cat[j] or "-4" == wanted_cat[j]:
+                    unwant_pick = unwant_pick + 1
+                    c.execute("SELECT * FROM soup")
+                    send_to_final_unwanted(c.fetchall())
+                elif "-favorite" == wanted_cat[j] or "-7" == wanted_cat[j]:
+                    unwant_pick = unwant_pick + 1
+                    c.execute("SELECT * FROM favorite")
+                    send_to_final_unwanted(c.fetchall())
+                elif "-western" == wanted_cat[j] or "-5" == wanted_cat[j]:
+                    unwant_pick = unwant_pick + 1
+                    c.execute("SELECT * FROM western")
+                    send_to_final_unwanted(c.fetchall())
+                elif "-japanese" == wanted_cat[j] or "-2" == wanted_cat[j]:
+                    unwant_pick = unwant_pick + 1
+                    c.execute("SELECT * FROM japanese")
+                    send_to_final_unwanted(c.fetchall())
                 else:
                     console.print(Panel.fit("Sorry😓, I don't know a catagory name [yellow]"+ wanted_cat[j] + "[/yellow]", style="#d442f5")) 
+        if want_pick == 0: #if only unwant_pick is entered, use all_food as want_pick
+            c.execute("SELECT * FROM food_all")
+            send_to_final(c.fetchall())
+            want_pick = 1
         last_pick = dict(Counter(final_pick))
         out = []
+        unwanted_out = sorted(set(final_pick_unwanted))
         for k, v in last_pick.items():
-            if v == len(wanted_cat):
+            if v == want_pick:
                 out.append(k)
-        if len(out) == 0:
+        out = out + unwanted_out
+        out = dict(Counter(out))
+        final_out = []
+        for k, v in out.items():
+            if len(final_pick_unwanted) == 0:
+                final_out.append(k)
+            elif v%2 != 0 :
+                final_out.append(k)
+        for i in final_out:
+            if i in unwanted_out:
+                final_out.remove(i)
+
+        if len(final_out) == 0:
             console.print(Panel.fit("I can't find any menu that meet your request 🤔"))
         else:
             try:
-                sort_cal = [i for i in out if i[1] <= int(calor_limit)]
+                sort_cal = [i for i in final_out if i[1] <= int(calor_limit)]
                 y = "default"
                 try:
                     y = random.choice([e for e in sort_cal])
@@ -157,10 +225,11 @@ def main():
                     console.print(Panel.fit("[green]How about [yellow]"+ y[0] +"[/yellow] 😋"+"\n"+"it will give you around [yellow]" +str(y[1])+ "[/yellow] kilocalorie[/green]", style="#e8e231", box = box.ROUNDED))
                     
             except ValueError:
-                y = random.choice([e for e in out])
+                y = random.choice([e for e in final_out])
                 console.print(Panel.fit("[green]How about [yellow]"+ y[0] +"[/yellow] 😋"+"\n"+"it will give you around [yellow]" +str(y[1])+ "[/yellow] kilocalorie[/green]", style="#e8e231", box = box.ROUNDED))
             conn.commit()
             conn.close()
+
 
 
     elif first_step == 2: #add menu
